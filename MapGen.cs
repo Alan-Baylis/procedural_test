@@ -43,6 +43,8 @@ public class MapGen : MonoBehaviour {
 		for(int i = 0; i<smoothingIterations;i++) 
 			SmoothMap();
 
+		ProcessMap();
+
 		int borderSize = 5; // sets border THICCness
 		int[,] borderedMap = new int[width + borderSize*2,height + borderSize*2];
 
@@ -54,7 +56,6 @@ public class MapGen : MonoBehaviour {
 					borderedMap[x,y] = 1;
 			}
 		}
-		//ProcessMap();
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -138,7 +139,7 @@ public class MapGen : MonoBehaviour {
 
 	List<Coord> GetRegionTiles(int startX, int startY){
 		List<Coord> tiles = new List<Coord>();
-		int[,] mapFlags = new int[width,height];
+		int[,] mapFlags = new int[width,height]; // determine which tiles have been looked at
 		int tileType = map[startX,startY];
 
 		Queue<Coord> queue = new Queue<Coord>();
@@ -149,8 +150,8 @@ public class MapGen : MonoBehaviour {
 			Coord tile = queue.Dequeue();
 			tiles.Add(tile);
 
-			for(int x = tile.tileX -1; x <= tile.tileX; x++){
-				for(int y = tile.tileY -1; y <= tile.tileY; y++){
+			for(int x = tile.tileX -1; x <= tile.tileX +1; x++){
+				for(int y = tile.tileY -1; y <= tile.tileY+1; y++){
 					// checks for non diagonal tiles
 					if(IsInMapRange(x,y) && (y == tile.tileY || x == tile.tileX)){
 						if(mapFlags[x,y] == 0 && map[x,y] == tileType){

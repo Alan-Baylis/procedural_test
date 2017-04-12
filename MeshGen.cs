@@ -182,8 +182,6 @@ public class MeshGen : MonoBehaviour {
 		if(triangleDictionary.ContainsKey(vertexIndexKey))
 			triangleDictionary[vertexIndexKey].Add(triangle);
 		else {
-			if(vertexIndexKey == 1242)
-				Debug.Log("[AddTriangleToDictionary()] Vertex Index: "+vertexIndexKey);
 			List<Triangle> triangleList = new List<Triangle>();
 			triangleList.Add(triangle);
 			triangleDictionary.Add(vertexIndexKey,triangleList);
@@ -218,7 +216,6 @@ public class MeshGen : MonoBehaviour {
 			FollowOutline(nextVertexIndex, outlineIndex);
 	}
 
-	// throwing error: does not contain key
 	int GetConnectedOutlineVertex(int vertexIndex){
 		List<Triangle> containingVertex = triangleDictionary[vertexIndex];
 
