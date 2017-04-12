@@ -1,6 +1,8 @@
 /* Zoilo Merdedes
  * Marching Squares Mesh Generator, credit Sebastian Lague
  * Definitions:
+ * 	   vertex: point on graph.
+ *     edge: two connected vertices
  *     outline edge: two vertices which share exactly one triangle
  */ 
 using System.Collections;
@@ -14,6 +16,7 @@ public class MeshGen : MonoBehaviour {
 	List<Vector3> vertices;
 	List<int> triangles;
 
+	// pass in vertexIndex and get a list of all triangles which vertex is part of.
 	Dictionary<int,List<Triangle>> triangleDictionary = new Dictionary<int, List<Triangle>>();
 	List<List<int>> outlines = new List<List<int>>();
 
@@ -154,7 +157,7 @@ public class MeshGen : MonoBehaviour {
 	void AssignVertices(Node[] points){
 		for(int i = 0; i < points.Length; i++){
 			if(points[i].vertexIndex == -1){
-				Debug.Log(vertices.Count);
+				//Debug.Log("[AssignVertices()] Vertex: "+vertices.Count);
 				points[i].vertexIndex = vertices.Count;
 				vertices.Add(points[i].position);
 			}
@@ -179,17 +182,20 @@ public class MeshGen : MonoBehaviour {
 		if(triangleDictionary.ContainsKey(vertexIndexKey))
 			triangleDictionary[vertexIndexKey].Add(triangle);
 		else {
+			if(vertexIndexKey == 1242)
+				Debug.Log("[AddTriangleToDictionary()] Vertex Index: "+vertexIndexKey);
 			List<Triangle> triangleList = new List<Triangle>();
 			triangleList.Add(triangle);
 			triangleDictionary.Add(vertexIndexKey,triangleList);
 		}
 	}
 
+	// vertex indexes c
 	void CalculateMeshOutlines(){ // study this method
 		for(int vertexIndex = 0; vertexIndex < vertices.Count; vertexIndex++){
 			if(!checkedVertices.Contains(vertexIndex)){
 				int newOutlineVertex = GetConnectedOutlineVertex(vertexIndex);
-				if(newOutlineVertex == -1){
+				if(newOutlineVertex != -1){
 					checkedVertices.Add(vertexIndex);
 
 					List<int> newOutline = new List<int>();
@@ -205,14 +211,15 @@ public class MeshGen : MonoBehaviour {
 	void FollowOutline(int vertexIndex, int outlineIndex){
 		outlines[outlineIndex].Add(vertexIndex);
 		checkedVertices.Add(vertexIndex);
+		//Debug.Log(vertexIndex);
 		int nextVertexIndex = GetConnectedOutlineVertex(vertexIndex);
 
 		if(nextVertexIndex != -1)
 			FollowOutline(nextVertexIndex, outlineIndex);
 	}
 
+	// throwing error: does not contain key
 	int GetConnectedOutlineVertex(int vertexIndex){
-		Debug.Log(vertexIndex);
 		List<Triangle> containingVertex = triangleDictionary[vertexIndex];
 
 		for(int i = 0; i < containingVertex.Count; i++){
@@ -227,6 +234,7 @@ public class MeshGen : MonoBehaviour {
 			}
 		}
 
+		//Debug.Log("[GetConnectedOutlineVertex()] returning -1 with "+vertexIndex);
 		return -1;
 	}
 
@@ -265,7 +273,6 @@ public class MeshGen : MonoBehaviour {
 			get{ return vertices[i]; }
 		}
 		
-
 		public bool Contains(int vertexIndex){
 			return vertexIndex == vertexIndexA || vertexIndex == vertexIndexB || vertexIndex == vertexIndexC;
 		}
