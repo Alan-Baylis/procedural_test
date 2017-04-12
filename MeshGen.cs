@@ -1,4 +1,4 @@
-﻿/* Zoilo Merdedes
+/* Zoilo Merdedes
  * Marching Squares Mesh Generator, credit Sebastian Lague
  * Definitions:
  *     outline edge: two vertices which share exactly one triangle
@@ -154,6 +154,7 @@ public class MeshGen : MonoBehaviour {
 	void AssignVertices(Node[] points){
 		for(int i = 0; i < points.Length; i++){
 			if(points[i].vertexIndex == -1){
+				Debug.Log(vertices.Count);
 				points[i].vertexIndex = vertices.Count;
 				vertices.Add(points[i].position);
 			}
@@ -190,7 +191,7 @@ public class MeshGen : MonoBehaviour {
 				int newOutlineVertex = GetConnectedOutlineVertex(vertexIndex);
 				if(newOutlineVertex == -1){
 					checkedVertices.Add(vertexIndex);
-					
+
 					List<int> newOutline = new List<int>();
 					newOutline.Add(vertexIndex);
 					outlines.Add(newOutline);
@@ -211,6 +212,7 @@ public class MeshGen : MonoBehaviour {
 	}
 
 	int GetConnectedOutlineVertex(int vertexIndex){
+		Debug.Log(vertexIndex);
 		List<Triangle> containingVertex = triangleDictionary[vertexIndex];
 
 		for(int i = 0; i < containingVertex.Count; i++){
