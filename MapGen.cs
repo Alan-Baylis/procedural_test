@@ -107,6 +107,7 @@ public class MapGen : MonoBehaviour {
 		return wallCount;
 	}
 
+	// goes over map and removes regions smaller than wallThreshold
 	void ProcessMap(){
 		List<List<Coord>> wallRegions = GetRegions(1);
 
@@ -179,6 +180,40 @@ public class MapGen : MonoBehaviour {
 		}
 	}
 	
+	Class Room{
+		public List<Coord> tiles; // tiles that belong to room
+		public List<Coord> edgeTiles; // edges of room
+		public List<Room> connectedRooms;
+		public int roomSize;
+
+		public Room(){}
+
+		public Room(List<Coord> roomTiles, int[,] map){
+			tiles = roomTiles;
+			roomSize = tiles.Count;
+			connectedRooms = new List<Room>();
+
+			edgeTiles = new List<Coord>();
+			foreach(Coord tile in tiles){
+				for(int x = tile.tileX-1; x<= tile.tileX+1; x++){
+					for(int y = tile.tileY-1; y<= tile.tileY+1; y++){
+						if( x == tile.tileX || y == tile.tileY){ // if tile being checked isn't diagonal
+							if(map[x,y] == 1){
+								edgeTiles.Add(tile)
+							}
+						}
+					}
+				}
+			}
+		}
+		public static void ConnectRooms(Room roomA, Room roomB){
+			roomA.connectedRooms.Add(roomB);
+			roomB.connectedRooms.Add(roomA);
+		}
+		public bool IsConnected(Room otherRoom){
+			return connectedRooms.Contains(otherRoom);
+		}
+	}
 	void OnDrawGizmos(){/*
 		if(map!= null){
 			for (int x = 0; x < width; x++){
