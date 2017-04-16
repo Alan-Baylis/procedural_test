@@ -117,8 +117,71 @@ public class MapGen : MonoBehaviour {
 					map[tile.tileX,tile.tileY] = 0;
 			}
 		}
+
+		List<List<Coord>> roomRegions = GetRegions(0);
+		int roomThreshold = 50;
+		List<Room> survivingRooms = new List<Room>();
+
+		foreach(List<Coord> roomRegion in roomRegions){
+			if(roomRegion.Count < roomThreshold){
+				foreach(Coord tile in roomRegion)
+					map[tile.tileX,tile.tileY] = 1;
+			} else {
+				survivingRooms.Add(new Room(roomRegion, map));
+			}
+		}
+		ConnectClosestRooms(survivingRooms);
 	}
 
+	void ConnectClosestRooms(List<Room> allRooms){
+		int bestDistance = 0;
+		Coord bestTileA = new Coord();
+		Coord bestTileB = new Coord();
+		Room bestRoomA = new Room();
+		Room bestRoomB = new Room();
+		bool possibleConnection = false;
+
+		foreach(Room roomA in allRooms){
+			possibleConnection = false;
+			foreach(Room roomB in allRooms){
+				if(roomA == roomB)
+					continue; // goes to next roomB
+				if(roomA.IsConnected(roomB)){
+					possibleConnection = false;
+					break; // skips and goes to next roomA
+				}
+
+				for(int tileIndexA = 0; tileIndexA < roomA.edgeTiles.Count; tileIndexA++){
+					for(int tileIndexB = 0; tileIndexB < roomB.edgeTiles.Count; tileIndexB++){
+						Coord tileA = roomA.edgeTiles[tileIndexA];
+						Coord tileB = roomB.edgeTiles[tileIndexB];
+						int distanceBetweenRooms = (int)(Mathf.Pow(tileA.tileX - tileB.tileX, 2) + Mathf.Pow(tileA.tileY - tileB.tileY, 2));
+					
+						if(distanceBetweenRooms < bestDistance || !possibleConnection){
+							bestDistance = distanceBetweenRooms;
+							possibleConnection = true;
+							bestTileA = tileA;
+							bestTileB = tileB;
+							bestRoomA = roomA;
+							bestRoomB = roomB;
+						}
+					}
+				}
+			}
+			if(possibleConnection)
+				CreatePassage(bestRoomA,bestRoomB,bestTileA,bestTileB);
+		}
+	}
+
+	void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB){
+		Room.ConnectRooms(roomA, roomB);
+		Debug.DrawLine(CoordToWorldPoint(tileA),CoordToWorldPoint(tileB), Color.green, 100);
+	}
+
+	// this method is adapted for 2d, might give errors
+	Vector3 CoordToWorldPoint(Coord tile){
+		return new Vector3(-width/2 + .5f + tile.tileX, -height/2 + .5f + tile.tileY,-1);
+	}
 	List<List<Coord>> GetRegions(int tileType){
 		List<List<Coord>> regions = new List<List<Coord>>();
 		int[,] mapFlags = new int[width,height];
@@ -170,7 +233,7 @@ public class MapGen : MonoBehaviour {
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
 
-	struct Coord {
+	public struct Coord {
 		public int tileX;
 		public int tileY;
 
@@ -180,7 +243,7 @@ public class MapGen : MonoBehaviour {
 		}
 	}
 	
-	Class Room{
+	public class Room{
 		public List<Coord> tiles; // tiles that belong to room
 		public List<Coord> edgeTiles; // edges of room
 		public List<Room> connectedRooms;
@@ -199,13 +262,14 @@ public class MapGen : MonoBehaviour {
 					for(int y = tile.tileY-1; y<= tile.tileY+1; y++){
 						if( x == tile.tileX || y == tile.tileY){ // if tile being checked isn't diagonal
 							if(map[x,y] == 1){
-								edgeTiles.Add(tile)
+								edgeTiles.Add(tile);
 							}
 						}
 					}
 				}
 			}
 		}
+
 		public static void ConnectRooms(Room roomA, Room roomB){
 			roomA.connectedRooms.Add(roomB);
 			roomB.connectedRooms.Add(roomA);
@@ -214,6 +278,7 @@ public class MapGen : MonoBehaviour {
 			return connectedRooms.Contains(otherRoom);
 		}
 	}
+
 	void OnDrawGizmos(){/*
 		if(map!= null){
 			for (int x = 0; x < width; x++){
