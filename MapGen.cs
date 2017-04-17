@@ -133,12 +133,28 @@ public class MapGen : MonoBehaviour {
 			}
 		}
 		survivingRooms.Sort();
-		foreach(Room r in survivingRooms)
-			print(r.roomSize);
+		survivingRooms[0].isMain = true;
+		survivingRooms[0].isAccessibleFromMain = true;
+
 		ConnectClosestRooms(survivingRooms);
 	}
 
-	void ConnectClosestRooms(List<Room> allRooms){
+	void ConnectClosestRooms(List<Room> allRooms, bool forceAccessFromMain = false){
+		List<Room> roomListA = new List<Room>();
+		List<Room> roomListB = new List<Room>();
+
+		if(forceAccessFromMain){
+			foreach(Room room in allRooms){
+				if(room.isAccessibleFromMain)
+					roomListB.Add(room);
+				else
+					roomListA.Add(room);
+			}
+		} else {
+			roomListA = allRooms;
+			roomListB = allRooms;
+		}
+
 		int bestDistance = 0;
 		Coord bestTileA = new Coord();
 		Coord bestTileB = new Coord();
@@ -146,15 +162,16 @@ public class MapGen : MonoBehaviour {
 		Room bestRoomB = new Room();
 		bool possibleConnection = false;
 
-		foreach(Room roomA in allRooms){
-			possibleConnection = false;
-			foreach(Room roomB in allRooms){
-				if(roomA == roomB)
+		foreach(Room roomA in roomListA){
+			if(!forceAccessFromMain){
+				possibleConnection = false; // watch ep 7(~9:00) to understand this logic
+				if(roomA.connectedRooms.Count > 0)
+					continue;
+			}
+
+			foreach(Room roomB in roomListB){
+				if(roomA == roomB || roomA.IsConnected(roomB))
 					continue; // goes to next roomB
-				if(roomA.IsConnected(roomB)){
-					possibleConnection = false;
-					break; // skips and goes to next roomA
-				}
 
 				for(int tileIndexA = 0; tileIndexA < roomA.edgeTiles.Count; tileIndexA++){
 					for(int tileIndexB = 0; tileIndexB < roomB.edgeTiles.Count; tileIndexB++){
@@ -173,8 +190,16 @@ public class MapGen : MonoBehaviour {
 					}
 				}
 			}
-			if(possibleConnection)
+			if(possibleConnection && !forceAccessFromMain)
 				CreatePassage(bestRoomA,bestRoomB,bestTileA,bestTileB);
+		}
+		if(possibleConnection && forceAccessFromMain){
+			CreatePassage(bestRoomA,bestRoomB,bestTileA,bestTileB);
+			ConnectClosestRooms(allRooms, true);
+		}
+
+		if(!forceAccessFromMain){
+			ConnectClosestRooms(allRooms, true);
 		}
 	}
 
@@ -253,6 +278,8 @@ public class MapGen : MonoBehaviour {
 		public List<Coord> edgeTiles; // edges of room
 		public List<Room> connectedRooms;
 		public int roomSize;
+		public bool isAccessibleFromMain;
+		public bool isMain;
 
 		public Room(){}
 
@@ -275,7 +302,21 @@ public class MapGen : MonoBehaviour {
 			}
 		}
 
+		// 
+		public void SetAccessibleFromMainRoom(){
+			if(!isAccessibleFromMain){
+				isAccessibleFromMain = true;
+				foreach(Room connectedRoom in connectedRooms)
+					connectedRoom.SetAccessibleFromMainRoom();
+			}
+		}
+
 		public static void ConnectRooms(Room roomA, Room roomB){
+			if(roomA.isAccessibleFromMain)
+				roomB.SetAccessibleFromMainRoom();
+			else if(roomB.isAccessibleFromMain)
+				roomA.SetAccessibleFromMainRoom();
+
 			roomA.connectedRooms.Add(roomB);
 			roomB.connectedRooms.Add(roomA);
 		}
@@ -283,7 +324,7 @@ public class MapGen : MonoBehaviour {
 			return connectedRooms.Contains(otherRoom);
 		}
 		
-		// when using Icomparable<obj> interface, must define CompareTo
+		// when using IComparable<obj> interface, must define CompareTo
 		// primitives(?) have compareto defined already
 		public int CompareTo(Room otherRoom){ 
 			return otherRoom.roomSize.CompareTo(roomSize);
