@@ -32,8 +32,10 @@ public class MapGen : MonoBehaviour {
 	}
 
 	void Update(){
-		if(Input.GetMouseButtonDown(0))
+		if(Input.GetMouseButtonDown(0)){
+
 			GenerateMap();
+		}
 	}
 
 	void GenerateMap(){
@@ -130,6 +132,9 @@ public class MapGen : MonoBehaviour {
 				survivingRooms.Add(new Room(roomRegion, map));
 			}
 		}
+		survivingRooms.Sort();
+		foreach(Room r in survivingRooms)
+			print(r.roomSize);
 		ConnectClosestRooms(survivingRooms);
 	}
 
@@ -243,7 +248,7 @@ public class MapGen : MonoBehaviour {
 		}
 	}
 	
-	public class Room{
+	public class Room : IComparable<Room> {
 		public List<Coord> tiles; // tiles that belong to room
 		public List<Coord> edgeTiles; // edges of room
 		public List<Room> connectedRooms;
@@ -276,6 +281,12 @@ public class MapGen : MonoBehaviour {
 		}
 		public bool IsConnected(Room otherRoom){
 			return connectedRooms.Contains(otherRoom);
+		}
+		
+		// when using Icomparable<obj> interface, must define CompareTo
+		// primitives(?) have compareto defined already
+		public int CompareTo(Room otherRoom){ 
+			return otherRoom.roomSize.CompareTo(roomSize);
 		}
 	}
 
