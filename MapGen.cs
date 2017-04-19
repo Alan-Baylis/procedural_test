@@ -278,6 +278,7 @@ public class MapGen : MonoBehaviour {
 	Vector3 CoordToWorldPoint(Coord tile){
 		return new Vector3(-width/2 + .5f + tile.tileX, -height/2 + .5f + tile.tileY,-1);
 	}
+	
 	List<List<Coord>> GetRegions(int tileType){
 		List<List<Coord>> regions = new List<List<Coord>>();
 		int[,] mapFlags = new int[width,height];

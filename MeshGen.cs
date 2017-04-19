@@ -13,6 +13,11 @@ public class MeshGen : MonoBehaviour {
 
 	public SquareGrid squareGrid;
 	public MeshFilter walls;
+	public MeshFilter cave;
+	GameObject caveMesh2D;
+
+	public bool is2D;
+
 	List<Vector3> vertices;
 	List<int> triangles;
 
@@ -30,6 +35,8 @@ public class MeshGen : MonoBehaviour {
 		outlines.Clear();
 		checkedVertices.Clear();
 
+		caveMesh2D = GameObject.Find("Cave Mesh");
+
 		squareGrid = new SquareGrid(map, squareSize);
 
 		vertices = new List<Vector3>();
@@ -42,13 +49,18 @@ public class MeshGen : MonoBehaviour {
 		}
 
 		Mesh mesh = new Mesh();
-		GetComponent<MeshFilter>().mesh = mesh;
+		cave.mesh = mesh;
 
 		mesh.vertices = vertices.ToArray();
 		mesh.triangles = triangles.ToArray();
 		mesh.RecalculateNormals();
 
-		CreateWallMesh();
+		if(is2D){
+			caveMesh2D.GetComponent<Transform>().Rotate(new Vector3(270,0,0));
+			Generate2DColliders();
+		}
+		else
+			CreateWallMesh();
 	}
 	
 	void CreateWallMesh(){
@@ -80,6 +92,30 @@ public class MeshGen : MonoBehaviour {
 		wallMesh.vertices = wallVertices.ToArray();
 		wallMesh.triangles = wallTriangles.ToArray();
 		walls.mesh = wallMesh;
+
+		// setting collider
+		MeshCollider wallCollider = walls.gameObject.AddComponent<MeshCollider>();
+		wallCollider.sharedMesh = wallMesh;
+	}
+
+	// generates colliders based on mesh outlines. will generate multiple colliders
+	// depending on how many wall islands there are
+	void Generate2DColliders(){
+		EdgeCollider2D[] currentColliders = gameObject.GetComponents<EdgeCollider2D>();
+		for(int i=0;i<currentColliders.Length;i++)
+			Destroy(currentColliders[i]);
+
+		CalculateMeshOutlines();
+
+		foreach(List<int> outline in outlines){
+			EdgeCollider2D edgeCollider = gameObject.AddComponent<EdgeCollider2D>();
+			Vector2[] edgePoints = new Vector2[outline.Count];
+
+			for(int i = 0; i < outline.Count; i++)
+				edgePoints[i] = new Vector2(vertices[outline[i]].x,vertices[outline[i]].z);
+			
+			edgeCollider.points = edgePoints;
+		}
 	}
 
 	void TriangulateSquare(Square square){
