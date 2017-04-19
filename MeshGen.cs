@@ -11,12 +11,11 @@ using UnityEngine;
 
 public class MeshGen : MonoBehaviour {
 
+	public bool is2D;
 	public SquareGrid squareGrid;
 	public MeshFilter walls;
 	public MeshFilter cave;
 	GameObject caveMesh2D;
-
-	public bool is2D;
 
 	List<Vector3> vertices;
 	List<int> triangles;

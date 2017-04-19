@@ -21,7 +21,7 @@ public class MapGen : MonoBehaviour {
 	public bool useRandomSeed;
 	public int smoothingIterations = 5;
 	public int wallThreshold = 50; // used in processmap, any wall region < this will be removed.
-	public int roomThreshold = 50; // same as above for rooms
+	public int roomThreshold = 50; // same as above for room regions
 	public int passageRad = 1; // how wide passageways will be
 
 	[Range(0,100)]
@@ -34,10 +34,8 @@ public class MapGen : MonoBehaviour {
 	}
 
 	void Update(){
-		if(Input.GetMouseButtonDown(0)){
-
+		if(Input.GetMouseButtonDown(0))
 			GenerateMap();
-		}
 	}
 
 	void GenerateMap(){
@@ -133,9 +131,9 @@ public class MapGen : MonoBehaviour {
 				survivingRooms.Add(new Room(roomRegion, map));
 			}
 		}
-		survivingRooms.Sort();
-		survivingRooms[0].isMain = true;
-		survivingRooms[0].isAccessibleFromMain = true;
+		survivingRooms.Sort(); // will put biggest room at the start.
+		survivingRooms[0].isMain = true; // biggest room is main room.
+		survivingRooms[0].isAccessibleFromMain = true; // the main room is accessible from itself
 
 		ConnectClosestRooms(survivingRooms);
 	}
@@ -278,7 +276,7 @@ public class MapGen : MonoBehaviour {
 	Vector3 CoordToWorldPoint(Coord tile){
 		return new Vector3(-width/2 + .5f + tile.tileX, -height/2 + .5f + tile.tileY,-1);
 	}
-	
+
 	List<List<Coord>> GetRegions(int tileType){
 		List<List<Coord>> regions = new List<List<Coord>>();
 		int[,] mapFlags = new int[width,height];
@@ -328,6 +326,12 @@ public class MapGen : MonoBehaviour {
 
 	bool IsInMapRange(int x, int y){
 		return x >= 0 && x < width && y >= 0 && y < height;
+	}
+
+	Vector3 GetRandomCaveLocation(){
+		Coord random;
+
+		return CoordToWorldPoint(random);
 	}
 
 	public struct Coord {
