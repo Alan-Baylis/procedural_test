@@ -21,6 +21,8 @@ public class MapGen : MonoBehaviour {
 	public bool useRandomSeed;
 	public int smoothingIterations = 5;
 	public int wallThreshold = 50; // used in processmap, any wall region < this will be removed.
+	public int roomThreshold = 50; // same as above for rooms
+	public int passageRad = 1; // how wide passageways will be
 
 	[Range(0,100)]
 	public int randomFillPercent;
@@ -121,7 +123,6 @@ public class MapGen : MonoBehaviour {
 		}
 
 		List<List<Coord>> roomRegions = GetRegions(0);
-		int roomThreshold = 50;
 		List<Room> survivingRooms = new List<Room>();
 
 		foreach(List<Coord> roomRegion in roomRegions){
@@ -206,6 +207,71 @@ public class MapGen : MonoBehaviour {
 	void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB){
 		Room.ConnectRooms(roomA, roomB);
 		Debug.DrawLine(CoordToWorldPoint(tileA),CoordToWorldPoint(tileB), Color.green, 100);
+
+		List<Coord> line = GetLine(tileA, tileB);
+		foreach(Coord c in line)
+			DrawCircle(c,passageRad);
+	}
+
+	void DrawCircle(Coord c, int r){
+		for(int x = -r; x <= r; x++){
+			for(int y = -r; y <= r; y++){
+				if(x*x + y*y <= r*r){
+					int drawX = c.tileX + x;
+					int drawY = c.tileY + y;
+					if(IsInMapRange(drawX,drawY))
+						map[drawX,drawY] = 0;
+				}
+			}
+		}
+	}
+
+	List<Coord> GetLine(Coord from, Coord to){
+		List<Coord> line = new List<Coord>();
+
+		int x = from.tileX;
+		int y = from.tileY;
+
+		int dx = to.tileX - from.tileX;
+		int dy = to.tileY - from.tileY;
+
+		bool inverted = false;
+
+		int step = Math.Sign(dx);
+		int gradientStep = Math.Sign(dy);
+
+		int longest = Mathf.Abs(dx);
+		int shortest = Mathf.Abs(dy);
+
+		if(longest < shortest){
+			inverted = true;
+			longest = Mathf.Abs(dy);
+			shortest = Mathf.Abs(dx);
+
+			step = Math.Sign(dy);
+			gradientStep = Math.Sign(dx);
+		}
+
+		int gradientAcc = longest / 2;
+		for(int i = 0; i < longest; i++){
+			line.Add(new Coord(x,y));
+
+			if(inverted)
+				y += step;
+			else
+				x += step;
+
+			gradientAcc += shortest;
+			if(gradientAcc >= longest){
+				if(inverted)
+					x += gradientStep;
+				else
+					y += gradientStep;
+
+				gradientAcc -= longest;
+			}
+		}
+		return line;
 	}
 
 	// this method is adapted for 2d, might give errors
