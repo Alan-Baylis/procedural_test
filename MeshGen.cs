@@ -55,7 +55,7 @@ public class MeshGen : MonoBehaviour {
 		mesh.RecalculateNormals();
 
 		if(is2D){
-			caveMesh2D.GetComponent<Transform>().Rotate(new Vector3(270,0,0));
+			caveMesh2D.GetComponent<Transform>().Rotate(new Vector3(270,0,0)); // rotates mesh repeatedly
 			Generate2DColliders();
 		}
 		else

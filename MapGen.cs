@@ -23,6 +23,8 @@ public class MapGen : MonoBehaviour {
 	public int wallThreshold = 50; // used in processmap, any wall region < this will be removed.
 	public int roomThreshold = 50; // same as above for room regions
 	public int passageRad = 1; // how wide passageways will be
+	public GameObject hazards;
+	public GameObject pickUps;
 
 	[Range(0,100)]
 	public int randomFillPercent;
@@ -58,6 +60,9 @@ public class MapGen : MonoBehaviour {
 					borderedMap[x,y] = 1;
 			}
 		}
+
+		//GenerateObjects(hazards);
+		//GenerateObjects(pickUps);
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -327,12 +332,18 @@ public class MapGen : MonoBehaviour {
 	bool IsInMapRange(int x, int y){
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
+	/*
+	void GenerateObjects(GameObject object){
 
-	Vector3 GetRandomCaveLocation(){
-		Coord random;
+	}
+	
+	public Vector3 GetRandomCaveLocation(){
+
+
+		Coord random = new Coord(width,height);
 
 		return CoordToWorldPoint(random);
-	}
+	}*/
 
 	public struct Coord {
 		public int tileX;
