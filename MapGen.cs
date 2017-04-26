@@ -9,7 +9,7 @@
  * Cool seeds:
  * 	   26.03741
  * To Do:
- * 	   Implement GenerateObject
+ * 	   Implement GenerateMapObject
  */
 using System.Collections;
 using System.Collections.Generic;
@@ -28,12 +28,17 @@ public class MapGen : MonoBehaviour {
 	public GameObject hazards;
 	public GameObject pickUps;
 
+	GameObject hazardParent;
+	GameObject pickupParent;
+
 	[Range(0,100)]
 	public int randomFillPercent;
 
 	int[,] map;
 
 	void Start(){
+		hazardParent = GameObject.Find("Hazards");
+		pickupParent = GameObject.Find("Pickups");
 		GenerateMap();
 	}
 
@@ -63,8 +68,8 @@ public class MapGen : MonoBehaviour {
 			}
 		}
 
-		//GenerateObjects(hazards);
-		//GenerateObjects(pickUps);
+		//GenerateMapObjects(hazards, hazardParent, true);
+		//GenerateMapObjects(pickUps, pickupParent);
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -142,8 +147,7 @@ public class MapGen : MonoBehaviour {
 		survivingRooms[0].isMain = true; // biggest room is main room.
 		survivingRooms[0].isAccessibleFromMain = true; // the main room is accessible from itself
 
-		if(Room.currentRooms.Count > 0)
-			Room.currentRooms = survivingRooms;
+		Room.currentRooms = survivingRooms;
 
 		ConnectClosestRooms(survivingRooms);
 	}
@@ -338,11 +342,38 @@ public class MapGen : MonoBehaviour {
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
 
-	/*
-	// Generates objects in room
-	void GenerateObjects(GameObject object){
+	
+	// Generates objects on map (2d only)
+	// checks for a good spot to place object (away from walls)
+	// 1. go through rooms
+	//   a. check for a spot a good distance away from a wall
+	//   	i. if good distance, place object, break
+	//		ii. if not go to next room
+	void GenerateMapObjects(GameObject object, GameObject parent, bool inMain = false){
+		if(inMain){
+			for(int i = 0; i < Room.currentRooms.Count; i++){
+				while(true){
+					randTile = Random.Range(0,Room.currentRooms[i].tiles.Count -1);
+					if(FarFromWall(Room.currentRooms[i].tiles[randTile])){
+						Instantiate(object, CoordToWorldPoint(Room.currentRooms[i].tiles[randTile]), object.transform, parent.transform);
+						break;
+					}
+				}
+			}
+		}
+	}
 
-	}*/
+	// 
+	bool FarFromWall(Coord tile){
+		if()
+
+		for(int x = tile.tileX - 1; x <= tile.tileX + 1; x++){
+			for(int y = tile.tileY - 1; y < = tile.tileY + 1; y++){
+				if()
+			}
+		}
+	}
+	
 
 	public struct Coord {
 		public int tileX;
@@ -356,7 +387,7 @@ public class MapGen : MonoBehaviour {
 	
 	public class Room : IComparable<Room> {
 		public List<Coord> tiles; // tiles that belong to room
-		public List<Coord> edgeTiles; // edges of room
+		public HashSet<Coord> edgeTiles; // edges of room
 		public List<Room> connectedRooms;
 		public int roomSize;
 		public bool isAccessibleFromMain;

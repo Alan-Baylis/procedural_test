@@ -40,7 +40,6 @@ public class MeshGen : MonoBehaviour {
 		outlines.Clear();
 		checkedVertices.Clear();
 
-
 		squareGrid = new SquareGrid(map, squareSize);
 
 		vertices = new List<Vector3>();
