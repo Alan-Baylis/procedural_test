@@ -25,10 +25,10 @@ public class MapGen : MonoBehaviour {
 	public int wallThreshold = 50; // used in processmap, any wall region < this will be removed.
 	public int roomThreshold = 50; // same as above for room regions
 	public int passageRad = 1; // how wide passageways will be
-	public GameObject hazards;
+	// public GameObject hazards;
 	public GameObject pickUps;
 
-	GameObject hazardParent;
+	// GameObject hazardParent;
 	GameObject pickupParent;
 
 	[Range(0,100)]
@@ -37,8 +37,9 @@ public class MapGen : MonoBehaviour {
 	int[,] map;
 
 	void Start(){
-		hazardParent = GameObject.Find("Hazards");
+		// hazardParent = GameObject.Find("Hazards");
 		pickupParent = GameObject.Find("Pickups");
+		Room.currentRooms = new List<Room>();
 		GenerateMap();
 	}
 
@@ -69,7 +70,8 @@ public class MapGen : MonoBehaviour {
 		}
 
 		//GenerateMapObjects(hazards, hazardParent, true);
-		//GenerateMapObjects(pickUps, pickupParent);
+
+		//GenerateMapObjects(pickUps, pickupParent); // breaks unity upon generating a couple maps
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -146,6 +148,9 @@ public class MapGen : MonoBehaviour {
 		survivingRooms.Sort(); // will put biggest room at [0].
 		survivingRooms[0].isMain = true; // biggest room is main room.
 		survivingRooms[0].isAccessibleFromMain = true; // the main room is accessible from itself
+
+		if(Room.currentRooms.Count > 0)
+			Room.currentRooms.Clear();
 
 		Room.currentRooms = survivingRooms;
 
@@ -342,38 +347,34 @@ public class MapGen : MonoBehaviour {
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
 
-	
 	// Generates objects on map (2d only)
 	// checks for a good spot to place object (away from walls)
 	// 1. go through rooms
 	//   a. check for a spot a good distance away from a wall
 	//   	i. if good distance, place object, break
 	//		ii. if not go to next room
-	void GenerateMapObjects(GameObject object, GameObject parent, bool inMain = false){
-		if(inMain){
-			for(int i = 0; i < Room.currentRooms.Count; i++){
-				while(true){
-					randTile = Random.Range(0,Room.currentRooms[i].tiles.Count -1);
-					if(FarFromWall(Room.currentRooms[i].tiles[randTile])){
-						Instantiate(object, CoordToWorldPoint(Room.currentRooms[i].tiles[randTile]), object.transform, parent.transform);
-						break;
-					}
-				}
+	void GenerateMapObjects(GameObject obj, GameObject parent, bool inMain = false){
+		/*if(pickUps.transform.childCount > 0){
+			foreach(Transform child in pickUps.transform)
+				Destroy(child.gameObject);
+		}*/
+
+		Room currentRoom;
+		int i = inMain ? 0 : 1;
+
+		for(; i < Room.currentRooms.Count; i++){
+			currentRoom = Room.currentRooms[i];
+			while(true){
+				int randTile = UnityEngine.Random.Range(0,currentRoom.tiles.Count -1);
+				if(!currentRoom.FarFromWall(currentRoom.tiles[randTile]))
+					continue;
+
+				//Debug.Log(CoordToWorldPoint(currentRoom.tiles[randTile]));
+				Instantiate(obj, CoordToWorldPoint(currentRoom.tiles[randTile]), obj.transform.rotation, parent.transform);
+				break;
 			}
 		}
-	}
-
-	// 
-	bool FarFromWall(Coord tile){
-		if()
-
-		for(int x = tile.tileX - 1; x <= tile.tileX + 1; x++){
-			for(int y = tile.tileY - 1; y < = tile.tileY + 1; y++){
-				if()
-			}
-		}
-	}
-	
+	}	
 
 	public struct Coord {
 		public int tileX;
@@ -387,7 +388,7 @@ public class MapGen : MonoBehaviour {
 	
 	public class Room : IComparable<Room> {
 		public List<Coord> tiles; // tiles that belong to room
-		public HashSet<Coord> edgeTiles; // edges of room
+		public List<Coord> edgeTiles; // edges of room
 		public List<Room> connectedRooms;
 		public int roomSize;
 		public bool isAccessibleFromMain;
@@ -436,6 +437,19 @@ public class MapGen : MonoBehaviour {
 
 		public bool IsConnected(Room otherRoom){
 			return connectedRooms.Contains(otherRoom);
+		}
+
+		public bool FarFromWall(Coord tile){
+			if(this.edgeTiles.Contains(tile))
+				return false;
+
+			for(int x = tile.tileX - 1; x <= tile.tileX + 1; x++){
+				for(int y = tile.tileY - 1; y <= tile.tileY + 1; y++){
+					if(this.edgeTiles.Contains(new Coord(x,y)))
+						return false;
+				}
+			}
+			return true;
 		}
 		
 		// when using IComparable<obj> interface, must define CompareTo
