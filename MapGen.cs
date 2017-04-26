@@ -1,4 +1,4 @@
-﻿/* Zoilo Mercedes
+/* Zoilo Mercedes
  * Procedural Map Generation tutorial/test, credit Sebastian Lague
  * Uses cellular automata to generate basic cave shapes
  * Many ways to experiment with the outcome:
@@ -8,6 +8,8 @@
  *     check different neighbors (GetSurroundingWallCount method)
  * Cool seeds:
  * 	   26.03741
+ * To Do:
+ * 	   Implement GenerateObject
  */
 using System.Collections;
 using System.Collections.Generic;
@@ -70,7 +72,7 @@ public class MapGen : MonoBehaviour {
 
 	void RandomFillMap(){
 		if(useRandomSeed)
-			seed = Time.time.ToString();
+			seed = DateTime.Now.Millisecond.ToString();
 
 		System.Random rng = new System.Random(seed.GetHashCode());
 	
@@ -136,9 +138,12 @@ public class MapGen : MonoBehaviour {
 				survivingRooms.Add(new Room(roomRegion, map));
 			}
 		}
-		survivingRooms.Sort(); // will put biggest room at the start.
+		survivingRooms.Sort(); // will put biggest room at [0].
 		survivingRooms[0].isMain = true; // biggest room is main room.
 		survivingRooms[0].isAccessibleFromMain = true; // the main room is accessible from itself
+
+		if(Room.currentRooms.Count > 0)
+			Room.currentRooms = survivingRooms;
 
 		ConnectClosestRooms(survivingRooms);
 	}
@@ -209,7 +214,7 @@ public class MapGen : MonoBehaviour {
 
 	void CreatePassage(Room roomA, Room roomB, Coord tileA, Coord tileB){
 		Room.ConnectRooms(roomA, roomB);
-		Debug.DrawLine(CoordToWorldPoint(tileA),CoordToWorldPoint(tileB), Color.green, 100);
+		//Debug.DrawLine(CoordToWorldPoint(tileA),CoordToWorldPoint(tileB), Color.green, 100);
 
 		List<Coord> line = GetLine(tileA, tileB);
 		foreach(Coord c in line)
@@ -238,7 +243,7 @@ public class MapGen : MonoBehaviour {
 		int dx = to.tileX - from.tileX;
 		int dy = to.tileY - from.tileY;
 
-		bool inverted = false;
+		bool inverted = false; // toggles ascent/descent, false is ascent
 
 		int step = Math.Sign(dx);
 		int gradientStep = Math.Sign(dy);
@@ -332,17 +337,11 @@ public class MapGen : MonoBehaviour {
 	bool IsInMapRange(int x, int y){
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
+
 	/*
+	// Generates objects in room
 	void GenerateObjects(GameObject object){
 
-	}
-	
-	public Vector3 GetRandomCaveLocation(){
-
-
-		Coord random = new Coord(width,height);
-
-		return CoordToWorldPoint(random);
 	}*/
 
 	public struct Coord {
@@ -362,6 +361,7 @@ public class MapGen : MonoBehaviour {
 		public int roomSize;
 		public bool isAccessibleFromMain;
 		public bool isMain;
+		public static List<Room> currentRooms; // keeps track of currently generated rooms
 
 		public Room(){}
 
@@ -402,6 +402,7 @@ public class MapGen : MonoBehaviour {
 			roomA.connectedRooms.Add(roomB);
 			roomB.connectedRooms.Add(roomA);
 		}
+
 		public bool IsConnected(Room otherRoom){
 			return connectedRooms.Contains(otherRoom);
 		}

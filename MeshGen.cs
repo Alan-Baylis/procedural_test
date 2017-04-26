@@ -28,13 +28,18 @@ public class MeshGen : MonoBehaviour {
 	// than once. contain() is much faster on hashsets. Used in CalculateMeshOutlines()
 	HashSet<int> checkedVertices = new HashSet<int>();
 
+	void Start(){
+		caveMesh2D = GameObject.Find("Cave Mesh");
+		if(is2D)
+			caveMesh2D.GetComponent<Transform>().Rotate(new Vector3(270,0,0)); 
+	}
+
 	public void GenerateMesh(int[,] map, float squareSize){
 
 		triangleDictionary.Clear();
 		outlines.Clear();
 		checkedVertices.Clear();
 
-		caveMesh2D = GameObject.Find("Cave Mesh");
 
 		squareGrid = new SquareGrid(map, squareSize);
 
@@ -54,10 +59,8 @@ public class MeshGen : MonoBehaviour {
 		mesh.triangles = triangles.ToArray();
 		mesh.RecalculateNormals();
 
-		if(is2D){
-			caveMesh2D.GetComponent<Transform>().Rotate(new Vector3(270,0,0)); // rotates mesh repeatedly
+		if(is2D)
 			Generate2DColliders();
-		}
 		else
 			CreateWallMesh();
 	}
