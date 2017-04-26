@@ -71,7 +71,7 @@ public class MapGen : MonoBehaviour {
 
 		//GenerateMapObjects(hazards, hazardParent, true);
 
-		//GenerateMapObjects(pickUps, pickupParent); // breaks unity upon generating a couple maps
+		GenerateMapObjects(pickUps, pickupParent); // breaks unity upon generating a couple maps
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -354,17 +354,18 @@ public class MapGen : MonoBehaviour {
 	//   	i. if good distance, place object, break
 	//		ii. if not go to next room
 	void GenerateMapObjects(GameObject obj, GameObject parent, bool inMain = false){
-		/*if(pickUps.transform.childCount > 0){
-			foreach(Transform child in pickUps.transform)
+		if(pickUps.transform.childCount > 0){
+			foreach(Transform child in parent.transform)
 				Destroy(child.gameObject);
-		}*/
+		}
 
 		Room currentRoom;
 		int i = inMain ? 0 : 1;
+		int count = 0;
 
 		for(; i < Room.currentRooms.Count; i++){
 			currentRoom = Room.currentRooms[i];
-			while(true){
+			while(count++ < currentRoom.tiles.Count){ 
 				int randTile = UnityEngine.Random.Range(0,currentRoom.tiles.Count -1);
 				if(!currentRoom.FarFromWall(currentRoom.tiles[randTile]))
 					continue;
