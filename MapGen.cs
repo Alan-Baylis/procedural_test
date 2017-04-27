@@ -242,6 +242,7 @@ public class MapGen : MonoBehaviour {
 		}
 	}
 
+	// study this
 	List<Coord> GetLine(Coord from, Coord to){
 		List<Coord> line = new List<Coord>();
 
@@ -348,10 +349,11 @@ public class MapGen : MonoBehaviour {
 
 	// Generates objects on map (2d only)
 	// checks for a good spot to place object (away from walls)
-	// 1. go through rooms
+	// 1. check to see if any objects exist
+	// 2. go through rooms
 	//   a. check for a spot a good distance away from a wall
 	//   	i. if good distance, place object, break
-	//		ii. if not go to next room
+	//		ii. if not try another tile
 	void GenerateMapObjects(GameObject obj, GameObject parent, bool inMain = false){
 		if(parent.transform.childCount > 0){
 			foreach(Transform child in parent.transform)
@@ -379,6 +381,8 @@ public class MapGen : MonoBehaviour {
 	public struct Coord {
 		public int tileX;
 		public int tileY;
+
+		public bool equalTo(Coord other){ return other.tileX == this.tileX && other.tileY == this.tileY; }
 
 		public Coord(int x, int y) { 
 			tileX = x;
@@ -445,7 +449,9 @@ public class MapGen : MonoBehaviour {
 
 			for(int x = tile.tileX - 1; x <= tile.tileX + 1; x++){
 				for(int y = tile.tileY - 1; y <= tile.tileY + 1; y++){
-					if(this.edgeTiles.Contains(new Coord(x,y)))
+					if(tile.equalTo(new Coord(x,y)))
+						continue;
+					else if(this.edgeTiles.Contains(new Coord(x,y)))
 						return false;
 				}
 			}
