@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class MeshGen : MonoBehaviour {
 
-	public bool is2D;
+	public bool is2D = true;
 	public SquareGrid squareGrid;
 	public MeshFilter walls;
 	public MeshFilter cave;

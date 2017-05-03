@@ -27,6 +27,7 @@ public class MapGen : MonoBehaviour {
 	public int passageRad = 1; // how wide passageways will be
 	// public GameObject hazards;
 	public GameObject pickUps;
+	public GameObject player;
 
 	// GameObject hazardParent;
 	GameObject pickupParent;
@@ -71,6 +72,7 @@ public class MapGen : MonoBehaviour {
 
 		//GenerateMapObjects(hazards, hazardParent, true);
 		GenerateMapObjects(pickUps, pickupParent);
+		PlacePlayer();
 
 		MeshGen meshGen = GetComponent<MeshGen>();
 		meshGen.GenerateMesh(borderedMap, 1);
@@ -349,7 +351,7 @@ public class MapGen : MonoBehaviour {
 
 	// Generates objects on map (2d only)
 	// checks for a good spot to place object (away from walls)
-	// 1. check to see if any objects exist
+	// 1. check to see if any objects exist, delete if they do
 	// 2. go through rooms
 	//   a. check for a spot a good distance away from a wall
 	//   	i. if good distance, place object, break
@@ -377,6 +379,24 @@ public class MapGen : MonoBehaviour {
 			}
 		}
 	}	
+
+	void PlacePlayer(){
+		Destroy(GameObject.FindWithTag("player"));
+		
+		Room main = Room.currentRooms[0];
+		int count = 0;
+		int mid = main.tiles.Count / 2;
+
+		while(count++ < main.tiles.Count){
+			if(!main.FarFromWall(main.tiles[mid])){
+				mid /= 2;
+				continue;
+			} 
+			//Debug.Log("Player placed on: " + CoordToWorldPoint(main.tiles[mid]));
+			Instantiate(player, CoordToWorldPoint(main.tiles[mid]), player.transform.rotation);
+			break;
+		}
+	}
 
 	public struct Coord {
 		public int tileX;
