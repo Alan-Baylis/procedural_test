@@ -380,8 +380,7 @@ public class MapGen : MonoBehaviour {
 		}
 	}	
 
-	void PlacePlayer(){
-		Destroy(GameObject.FindWithTag("player"));
+	void PlacePlayer(){ // buggy currently. want to use ceiling
 		
 		Room main = Room.currentRooms[0];
 		int count = 0;
@@ -392,8 +391,8 @@ public class MapGen : MonoBehaviour {
 				mid /= 2;
 				continue;
 			} 
-			//Debug.Log("Player placed on: " + CoordToWorldPoint(main.tiles[mid]));
-			Instantiate(player, CoordToWorldPoint(main.tiles[mid]), player.transform.rotation);
+			Debug.Log("Player placed on: " + main.tiles[mid].print);
+			player.transform.position = CoordToWorldPoint(main.tiles[mid]);
 			break;
 		}
 	}
@@ -403,6 +402,10 @@ public class MapGen : MonoBehaviour {
 		public int tileY;
 
 		public bool equalTo(Coord other){ return other.tileX == this.tileX && other.tileY == this.tileY; }
+
+		public string print(){
+			return "x: " + this.tileX + " y: " + this.tileY;
+		}
 
 		public Coord(int x, int y) { 
 			tileX = x;
