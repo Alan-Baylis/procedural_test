@@ -353,7 +353,7 @@ public class MapGen : MonoBehaviour {
 	// checks for a good spot to place object (away from walls)
 	// 1. check to see if any objects exist, delete if they do
 	// 2. go through rooms
-	//   a. check for a spot a good distance away from a wall
+	//   a. grab random position in room, check if it's a 3x3 matrix clear of walls
 	//   	i. if good distance, place object, break
 	//		ii. if not try another tile
 	void GenerateMapObjects(GameObject obj, GameObject parent, bool inMain = false){
@@ -380,7 +380,7 @@ public class MapGen : MonoBehaviour {
 		}
 	}	
 
-	void PlacePlayer(){ // buggy currently. want to use ceiling
+	void PlacePlayer(){ // buggy?
 		
 		Room main = Room.currentRooms[0];
 		int count = 0;
@@ -391,7 +391,7 @@ public class MapGen : MonoBehaviour {
 				mid /= 2;
 				continue;
 			} 
-			Debug.Log("Player placed on: " + main.tiles[mid].print);
+			Debug.Log("Player placed on " + main.tiles[mid].print());
 			player.transform.position = CoordToWorldPoint(main.tiles[mid]);
 			break;
 		}
@@ -403,9 +403,7 @@ public class MapGen : MonoBehaviour {
 
 		public bool equalTo(Coord other){ return other.tileX == this.tileX && other.tileY == this.tileY; }
 
-		public string print(){
-			return "x: " + this.tileX + " y: " + this.tileY;
-		}
+		public string print(){ return "(" + this.tileX + ", " + this.tileY +")"; }
 
 		public Coord(int x, int y) { 
 			tileX = x;

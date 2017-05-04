@@ -10,7 +10,7 @@ public class cameraMovement : MonoBehaviour {
 		if(player == null)
 			player = GameObject.FindWithTag("player");
 
-		Vector3 velocity = new Vector3(player.transform.position.x,player.transform.position.y,-10);
-		this.transform.Translate(velocity);		
+		Vector3 position = new Vector3(player.transform.position.x,player.transform.position.y,-10);
+		transform.position = position;		
 	}
 }
