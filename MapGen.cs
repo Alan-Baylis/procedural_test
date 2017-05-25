@@ -8,8 +8,9 @@
  *     check different neighbors (GetSurroundingWallCount method)
  * Cool seeds:
  * 	   26.03741
+ *	   404
  * To Do:
- * 	   Implement GenerateMapObject
+ * 	   
  */
 using System.Collections;
 using System.Collections.Generic;
@@ -349,13 +350,6 @@ public class MapGen : MonoBehaviour {
 		return x >= 0 && x < width && y >= 0 && y < height;
 	}
 
-	// Generates objects on map (2d only)
-	// checks for a good spot to place object (away from walls)
-	// 1. check to see if any objects exist, delete if they do
-	// 2. go through rooms
-	//   a. grab random position in room, check if it's a 3x3 matrix clear of walls
-	//   	i. if good distance, place object, break
-	//		ii. if not try another tile
 	void GenerateMapObjects(GameObject obj, GameObject parent, bool inMain = false){
 		if(parent.transform.childCount > 0){
 			foreach(Transform child in parent.transform)
@@ -364,37 +358,19 @@ public class MapGen : MonoBehaviour {
 
 		Room currentRoom;
 		int i = inMain ? 0 : 1;
-		int count = 0;
 
 		for(; i < Room.currentRooms.Count; i++){
 			currentRoom = Room.currentRooms[i];
-			while(count++ < currentRoom.tiles.Count){ 
-				int randTile = UnityEngine.Random.Range(0,currentRoom.tiles.Count -1);
-				if(!currentRoom.FarFromWall(currentRoom.tiles[randTile]))
-					continue;
-
-				//Debug.Log(CoordToWorldPoint(currentRoom.tiles[randTile]));
-				Instantiate(obj, CoordToWorldPoint(currentRoom.tiles[randTile]), obj.transform.rotation, parent.transform);
-				break;
-			}
+			Instantiate(obj, CoordToWorldPoint(currentRoom.GetPlaceCoord()), obj.transform.rotation, parent.transform);	
 		}
 	}	
 
-	void PlacePlayer(){ // buggy?
-		
+	void PlacePlayer(){ 
 		Room main = Room.currentRooms[0];
-		int count = 0;
-		int mid = main.tiles.Count / 2;
 
-		while(count++ < main.tiles.Count){
-			if(!main.FarFromWall(main.tiles[mid])){
-				mid /= 2;
-				continue;
-			} 
-			Debug.Log("Player placed on " + main.tiles[mid].print());
-			player.transform.position = CoordToWorldPoint(main.tiles[mid]);
-			break;
-		}
+		player.transform.position = CoordToWorldPoint(main.GetPlaceCoord());
+		Debug.Log("Player placed on " + player.transform.position);
+
 	}
 
 	public struct Coord {
@@ -464,15 +440,30 @@ public class MapGen : MonoBehaviour {
 			return connectedRooms.Contains(otherRoom);
 		}
 
-		public bool FarFromWall(Coord tile){
-			if(this.edgeTiles.Contains(tile))
-				return false;
+		// returns tile that is good distance from wall
+		// buggy: still returns positions right next to wall
+		public Coord GetPlaceCoord(){ 
 
-			for(int x = tile.tileX - 1; x <= tile.tileX + 1; x++){
-				for(int y = tile.tileY - 1; y <= tile.tileY + 1; y++){
+			int randTile = UnityEngine.Random.Range(0, tiles.Count - 1);
+			int count = 0;
+			Coord returnTile = this.tiles[randTile++];
+
+			while(count++ <= this.tiles.Count){
+				if(FarFromWall(returnTile))
+					break;
+				returnTile = tiles[randTile++ % tiles.Count];
+			}
+
+			return returnTile;
+		}
+
+		// true on tile being 5x5 grid away from wall
+		bool FarFromWall(Coord tile){
+			for(int x = tile.tileX - 2; x <= tile.tileX + 2; x++){
+				for(int y = tile.tileY - 2; y <= tile.tileY + 2; y++){
 					if(tile.equalTo(new Coord(x,y)))
 						continue;
-					else if(this.edgeTiles.Contains(new Coord(x,y)))
+					if(edgeTiles.Contains(new Coord(x,y)))
 						return false;
 				}
 			}
