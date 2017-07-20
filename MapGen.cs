@@ -449,7 +449,7 @@ public class MapGen : MonoBehaviour {
 			Coord returnTile = this.tiles[randTile++];
 
 			while(count++ <= this.tiles.Count){
-				if(FarFromWall(returnTile))
+				if(FarFromWall(returnTile)) // was having trouble getting this logic
 					break;
 				returnTile = tiles[randTile++ % tiles.Count];
 			}
@@ -461,7 +461,7 @@ public class MapGen : MonoBehaviour {
 		bool FarFromWall(Coord tile){
 			if(edgeTiles.Contains(tile))
 				return false;
-			
+
 			for(int x = tile.tileX - 2; x <= tile.tileX + 2; x++){
 				for(int y = tile.tileY - 2; y <= tile.tileY + 2; y++){
 					if(tile.equalTo(new Coord(x,y)))
